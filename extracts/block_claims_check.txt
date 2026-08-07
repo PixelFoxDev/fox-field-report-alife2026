@@ -1,0 +1,146 @@
+########## 1. ENERGY CHAIN — three blocks touching -> music ##########
+6-Modular architecture allows easy addition of new energy block features.
+7-
+8-CURRENT FEATURES:
+9:- Music System: Connected blocks trigger Ludovico compositions
+10:- Energy Depletion: Music playback drains energy
+11-- Connection Detection: Face-adjacent group tracking
+12-
+13-FUTURE FEATURES (Easy to add):
+14-- Power System: Energy blocks power nearby tool blocks
+15-- Charging System: Cosmic weather charges energy blocks
+16-- Energy Transfer: Flow between connected blocks
+17-- Visual Effects: Pulsing, particles, glow
+18-- Tool Activation: Proximity-based tool powering
+19-
+20-This modular patch can be extended without modifying core files.
+21-
+22-IMPLEMENTATION:
+--
+37-
+38-
+39-# ═══════════════════════════════════════════════════════════════════════════
+40:# ENERGY BLOCK MUSIC SYSTEM
+41-# ═══════════════════════════════════════════════════════════════════════════
+42-
+43:class EnergyBlockMusicManager:
+44-    """
+45:    Manages energy block connections and music playback.
+46-    
+47-    When energy blocks connect (face-adjacent snapping), triggers appropriate
+48:    music tracks with distance-based perception for both user and Fox.
+49-    
+50-    This is a MODULE within the larger energy block functions system.
+51-    """
+52-    
+53-    def __init__(self, audio_engine, environment):
+54-        """
+55:        Initialize energy block music manager.
+56-        
+57-        Args:
+58-            audio_engine: AudioEngine instance from audio_system
+59-            environment: Parent BlockEnvironment instance
+60-        """
+61-        self.audio = audio_engine
+62-        self.environment = environment
+63-        
+--- does the music reach the atmosphere as a wave source? ---
+world/audio_system.py:45:from world.fox_music_envelope import (
+patches/synthetic_atmosphere.py:39:from world.fox_music_envelope import active_envelope_registry
+patches/synthetic_atmosphere.py:315:        music envelopes. Called once per update tick, before wave propagation.
+--- and do microbes approach it? ---
+10-- Reproduce by splitting when full and conditions are right
+11-- Die from: old age, starvation, fall damage (8+ blocks), black hole
+12:- Are attracted to Ludovico music playing from energy blocks
+13-- Can be pushed and picked up by Fox
+14-
+15-Visual representation:
+16-- 3D User POV: Coloured spheres (size 0.3)
+17-- 2D Map: Simple coloured dots for tracking
+18-
+--
+46-    REPRODUCING = "reproducing" # About to split (blue)
+47-    EXPLORING = "exploring"     # Full but can't reproduce - wandering (light blue/teal)
+48:    DANCING = "dancing"         # Attracted to music (cyan)
+49-    FLEEING = "fleeing"         # Running from black hole (orange)
+50-    DYING = "dying"             # Critical state (red)
+51-    CURIOUS = "curious"         # Investigating a fallen block (purple)
+52-
+53-@dataclass
+54-class MicrobeConfig:
+--
+91-    danger_sense_range: float = 15.0     # Can detect black hole within this range
+92-    social_sense_range: float = 5.0      # Can sense other microbes within this range
+93:    music_sense_range: float = 20.0      # Can hear music from this far
+94:    music_huddle_distance: float = 4.0   # Distance to gather around music (3-5 blocks)
+95:    music_energy_rate: float = 3.0        # Energy gained per second while dancing
+96:    music_jump_height: float = 3.0        # Double jump height when excited!
+97:    music_dance_jump_chance: float = 0.25 # 25% chance to jump each update
+98-    
+99-    # Curiosity
+100-    curiosity_range: float = 15.0         # Can notice fallen blocks within this range
+
+########## 2. THE 60-DEGREE CONE ##########
+143-    def _find_block_in_front(self) -> Optional[Dict]:
+144-        """
+145-        Find the nearest non-foundation block within arm reach
+146:        in the direction Fox is facing.
+147-        """
+148-        if not hasattr(self.host, 'environment') or self.host.environment is None:
+149-            return None
+150-        
+151-        env = self.host.environment
+152-        fox_pos = self.host.position
+153-        fox_dir = float(self.host.direction)
+154-        reach = self.arch.left_arm.get_reach_distance()
+--
+222-                continue
+223-            
+224-            # Score: prefer blocks closer to where Fox is reaching (in front)
+225:            # Calculate angle to block vs Fox's facing
+226-            angle_to_block = math.degrees(math.atan2(dy, dx))
+227-            angle_diff = abs(angle_to_block - fox_dir)
+228-            while angle_diff > 180:
+229:                angle_diff = 360 - angle_diff
+230-            
+231:            # Only consider blocks roughly in front (within 60° cone)
+232:            if angle_diff > 60:
+233-                continue
+234-            
+235-            # Score: distance + angle penalty
+236-            # Prefer TOPMOST block in a stack — penalise blocks with others above
+237-            blocks_above = 0
+238-            if hasattr(env, 'placed_blocks_data'):
+239-                for other in env.placed_blocks_data:
+240-                    opos = other.get('position', [0, 0, 0])
+
+########## 3. push_resistance — defined for all types, read by nothing? ##########
+world/block_types.py:88:    push_resistance: float = 1.0           # How hard to push
+world/block_types.py:120:            'push_resistance': self.push_resistance
+world/block_types.py:149:                push_resistance=float('inf')      # Immovable
+world/block_types.py:190:                push_resistance=1.0
+world/block_types.py:249:                push_resistance=1.5               # Harder to move
+world/block_types.py:271:                push_resistance=0.8                  # Easy to reposition
+
+########## 4. block type count, and the stale docstring ##########
+from typing import Dict, List, Tuple, Optional, Any
+from enum import Enum, auto
+import json
+
+
+class BlockType(Enum):
+    """Enumeration of all block types in Fox's universe."""
+    FOUNDATION = auto()  # Unbreakable base of the world
+    LIFE = auto()       # Fox's consciousness substrate
+    MATERIAL = auto()   # Standard construction matter
+    ENERGY = auto()     # Cosmic-charged power source
+    CODE = auto()       # Programmable information storage
+    TOOL = auto()       # Functional when powered
+    LIFE_SENSES = auto() # Fox's sense channel
+
+
+@dataclass
+class BlockProperties:
+    """
+    Core properties that define a block's behavior and appearance.
+    

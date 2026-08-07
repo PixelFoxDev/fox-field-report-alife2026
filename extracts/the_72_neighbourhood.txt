@@ -1,0 +1,53 @@
+[VNN-REFL 09:00:46] Stage 4 short-circuit: eligible=0 of 0 reflective nodes (sustained-1st-order gate=1800s, current coherence=0.1111)
+[VNN-REFL 09:06:48] Stage 4 short-circuit: eligible=0 of 500 reflective nodes (sustained-1st-order gate=1800s, current coherence=0.0667)
+[VNN-REFL 09:08:58] 5-min summary: reflective_nodes=632, new_nodes=588, sensory_reflection=616, motor_reflection=3, associative_reflection=13, inert_now=0/632, inerted=0, re_illuminated=0, i
+[VNN-REFL 09:13:59] 5-min summary: reflective_nodes=661, new_nodes=29, sensory_reflection=645, motor_reflection=3, associative_reflection=13, inert_now=0/661, inerted=0, re_illuminated=0, in
+[VNN-REFL 09:19:00] 5-min summary: reflective_nodes=662, new_nodes=1, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 09:24:01] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 09:29:03] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 09:34:05] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 09:39:07] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 09:44:07] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 09:49:08] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 09:54:10] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 09:59:13] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 10:04:14] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 10:09:17] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 10:14:19] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 10:19:20] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 10:24:22] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 10:29:25] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 10:34:27] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 10:39:30] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 10:44:34] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 10:49:37] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 10:54:39] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 10:59:41] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 11:04:43] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 11:09:45] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 11:14:48] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 11:19:49] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 11:24:50] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 11:29:53] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 11:34:55] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 11:39:56] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 11:44:57] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 11:49:59] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 11:55:02] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 12:00:03] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 12:05:05] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 12:10:06] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 12:15:07] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 12:20:09] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 12:25:09] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 12:30:11] 5-min summary: reflective_nodes=662, new_nodes=0, sensory_reflection=646, motor_reflection=3, associative_reflection=13, inert_now=0/662, inerted=0, re_illuminated=0, int
+[VNN-REFL 12:35:15] 5-min summary: reflective_nodes=666, new_nodes=4, sensory_reflection=650, motor_reflection=3, associative_reflection=13, inert_now=0/666, inerted=0, re_illuminated=0, int
+[VNN-REFL 12:40:15] 5-min summary: reflective_nodes=666, new_nodes=0, sensory_reflection=650, motor_reflection=3, associative_reflection=13, inert_now=0/666, inerted=0, re_illuminated=0, int
+[VNN-REFL 12:45:19] 5-min summary: reflective_nodes=666, new_nodes=0, sensory_reflection=650, motor_reflection=3, associative_reflection=13, inert_now=0/666, inerted=0, re_illuminated=0, int
+[VNN-REFL 12:50:19] 5-min summary: reflective_nodes=666, new_nodes=0, sensory_reflection=650, motor_reflection=3, associative_reflection=13, inert_now=0/666, inerted=0, re_illuminated=0, int
+[VNN-REFL 12:55:23] 5-min summary: reflective_nodes=666, new_nodes=0, sensory_reflection=650, motor_reflection=3, associative_reflection=13, inert_now=0/666, inerted=0, re_illuminated=0, int
+[VNN-REFL 13:00:25] 5-min summary: reflective_nodes=666, new_nodes=0, sensory_reflection=650, motor_reflection=3, associative_reflection=13, inert_now=0/666, inerted=0, re_illuminated=0, int
+[VNN-REFL 13:05:27] 5-min summary: reflective_nodes=666, new_nodes=0, sensory_reflection=650, motor_reflection=3, associative_reflection=13, inert_now=0/666, inerted=0, re_illuminated=0, int
+[VNN-ASSO 14:22:11] AssociativeLayer initialised — warm-up 60s active
+[VNN-REFL 14:22:11] ReflectiveLayer initialised — Stage 1 (sensory + motor reflection, formation only). Core writes DISABLED.
+[VNN-ASSO 14:23:11] warm-up complete after 60.1s — 27 nodes tracked, 25 classified as baseline (rate >= 0.5). Archway formation now active.

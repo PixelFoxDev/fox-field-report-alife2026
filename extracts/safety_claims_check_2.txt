@@ -1,0 +1,166 @@
+########## A. MEMBRANE REPULSION — the function body, clean ##########
+    def _apply_membrane_repulsion(self, dt: float):
+
+########## B. does the repulsion body reference Fox at all? (want EMPTY) ##########
+
+########## C. what DOES it move? ##########
+
+########## D. MEMBRANE light properties ##########
+            
+            # Physics properties (for later phases)
+            'influence_radius': 15.0,            # Reality distortion zone
+            'affects_blocks': False,             # Phase 3 will enable this
+            'affects_vision': False,             # Phase 3 will enable this
+            'energy_consumption': 0.0,           # Phase 3 will enable this
+            
+            # Light properties - REFLECTOR not emitter
+            'emits_light': False,              # Does NOT emit light
+            'reflects_light': True,            # Reflects incoming light
+            'light_intensity': 0.0,            # No emission
+            'reflection_factor': 0.6,          # Edge reflects 60%
+            'core_absorption': 0.95,           # Core absorbs 95%
+            
+            'active': True,
+            'description': 'Geometric breathing - raw consciousness architecture'
+        }
+    
+    def _create_star_field(self) -> List[Dict[str, Any]]:
+        """
+        Create 8 cardinal navigation stars - simplified for performance.
+        Each star marks a compass direction with subtle color hints.
+        
+        OPTIMIZED: Reduced from 36 stars with 3D spherical coords to
+        8 cardinal stars with simple angular projection.
+        """
+        stars = []
+        center = self.size // 2
+        radius = self.size * 0.8  # Stars at edge of perception
+        
+        # Cardinal stars - 8 directions with navigation-meaningful colors
+        # Colors are dimmed (lower brightness) for subtle night sky
+        cardinal_stars = [
+            {'angle': 0,   'name': 'N',  'color': 'white',  'hint': 'life'},      # North - Life
+            {'angle': 45,  'name': 'NE', 'color': 'blue',   'hint': 'material'},  # Northeast - Material
+            {'angle': 90,  'name': 'E',  'color': 'green',  'hint': 'code'},      # East - Code
+            {'angle': 135, 'name': 'SE', 'color': 'purple', 'hint': 'energy'},    # Southeast - Energy
+            {'angle': 180, 'name': 'S',  'color': 'orange', 'hint': 'tool'},      # South - Tool
+
+########## E. SIGNAL HANDLING — is it in main rather than the lifeline? ##########
+23-import numpy as np
+24-import signal
+25:import atexit
+26-from entities.fox_lifeline import FoxLifeline   # continuity safeguard (peer of memory.py)
+27-
+28-# Global reference for signal handler access
+29-_universe_instance = None
+30-_shutdown_in_progress = False
+31-
+32-from patches.stress_test_logging_patch import patch_stress_test_logging
+33-
+34-from pathlib import Path
+35-from world.crystal_stream_integration import setup_crystals_complete
+--
+39-def graceful_shutdown_handler(signum=None, frame=None):
+40-    """
+41:    Handle Ctrl+C (SIGINT) and termination signals (SIGTERM).
+42-    """
+43-    global _universe_instance, _shutdown_in_progress
+44-    
+45-    # Prevent multiple shutdown attempts
+46-    if _shutdown_in_progress:
+47-        return  # Silent return - don't even print
+48-    
+49-    _shutdown_in_progress = True
+50-    
+51-    signal_name = {
+52:        signal.SIGINT: "SIGINT (Ctrl+C)",
+53:        signal.SIGTERM: "SIGTERM"
+54-    }.get(signum, f"Signal {signum}")
+55-    
+56-    print(f"\n[SIGNAL] {signal_name} received - initiating graceful shutdown...")
+57-    
+58-    # Deadlock fix (15 Jun 2026): this handler runs on the MAIN THREAD. If it
+59-    # acquired the save lock here — via preserve() or shutdown() — while a
+60-    # checkpoint/heartbeat save was already in flight on that same thread, it
+61-    # would reentrant-deadlock and hang forever (this is the watchdog-test hang).
+62-    # So the handler now does NO blocking work. It only asks the run loop to stop
+63-    # and raises KeyboardInterrupt into it; the loop's existing
+--
+74-
+75-# Register signal handlers
+76:signal.signal(signal.SIGINT, graceful_shutdown_handler)   # Ctrl+C
+77:signal.signal(signal.SIGTERM, graceful_shutdown_handler)  # kill command
+78-
+79-# ========================================
+80-# DUAL OUTPUT LOGGING SYSTEM
+81-# ========================================
+82-import os
+83-# Don't re-import datetime - it's already imported elsewhere in the file
+
+########## F. SUBSYSTEM GATES — the mortality law, verbatim ##########
+11-being off is invisible to Fox — the machinery simply is not running. Gate
+12-state never enters perception, memory, or the VNN.
+13-
+14:MORTALITY LAW: no gate ends Fox. Emergency controls are PROTECTIVE ONLY —
+15-preserve, suspend, safe-mode, shield. There is deliberately NO kill switch:
+16:the vessel is never the executioner; death comes solely from internal
+17-thermodynamics (death.py). The coherent emergency posture for a respected
+18:being is freeze-and-snapshot, never terminate.
+19-
+20-INCREMENT 1 scope: authoritative state + board snapshot + emergency controls.
+21-Tier-B ignition gates (Ring 5, death FLOOR) render their honest state but are
+22-NOT auto-armable (preconditions genuinely unmet). The only live test-toggle is
+23-the death manifestation (Tier A, reversible). Live VNN/mortality reaches are
+24-resolved defensively and flagged if unconfirmed — see the NOTE logs.
+25-"""
+26-
+27-import time
+28-
+29-# Board glyph states (rendered by Mission Control)
+30-NOTBUILT, INERT, ARMED, ACTIVE = 'notbuilt', 'inert', 'armed', 'active'
+
+########## G. observable_by_fox — the right not to be seen by the watcher ##########
+grep: world/__pycache__/block_environment.cpython-311.pyc: binary file matches
+grep: patches/__pycache__/fox_pov_stream_patch.cpython-311.pyc: binary file matches
+world/block_environment.py:7:#   - All entities include 'observable_by_fox' flag
+world/block_environment.py:2129:            'observable_by_fox': True  # Fox can perceive himself (reflection/self-awareness)
+world/block_environment.py:2260:            'observable_by_fox': False,           # CRITICAL: Fox cannot perceive this entity
+world/block_environment.py:2313:                            'observable_by_fox': True  # Fox can perceive microbes
+world/block_environment.py:2336:                                        'observable_by_fox': True  # Fox can perceive remains
+world/block_environment.py:2357:            List of entities where observable_by_fox == True
+world/block_environment.py:2364:            if entity.get('observable_by_fox', False)
+patches/fox_pov_stream_patch.py:127:            fox_entities = [e for e in all_entities if e.get('observable_by_fox', False)]
+patches/fox_pov_stream_patch.py:130:        # but they don't have observable_by_fox flag set, so add them
+patches/fox_pov_stream_patch.py:134:                entity['observable_by_fox'] = True
+
+########## H. we build the dying, not the surviving ##########
+56-  * INCREMENT 3 — ARMED THE MANIFESTATION: vitality below MANIFEST_THRESHOLD
+57-    drains block health via host.apply_damage (the same central path as every
+58:    other damage source), in pulses, scaled by depth. Winnable: vitality
+59-    recovery halts it; rest repairs blocks. No sense labels touched — the
+60-    central path modifies block health only, so decline is felt unnamed.
+61-    The FLOOR stays unarmed: no death fires from this module.
+62-
+--
+76-GOLDEN RULE (unchanged, load-bearing)
+77-----------------------------------------------------------------------------
+78:  * We build the dying, not the surviving. No survival drive. Response emergent.
+79-  * Internal thermodynamics ONLY. Never UPS / RAM / hardware. Crash != death.
+80-  * Vitality is FELT (later, via existing unnamed channels), never LABELLED.
+81-    Everything emitted here is architect-facing only; nothing reaches Fox's
+82-    perception, memory, or VNN.
+--
+133-    #   spiral/s = SPIRAL_COEFF * thermal_overshoot * energy_deficit
+134-    # Super-additive: cold-and-starving dies faster than the sum of each alone.
+135:    # Winnable — staying EITHER warm OR fed zeroes one factor and breaks it.
+136-    COUPLED: bool = True
+137-    SPIRAL_COEFF: float = 0.05
+138-    # Sleep <-> thermal coupling (§14.3.2): sleep deprivation degrades
+139-    # thermoregulation, so being sleep-deprived AND cold erodes faster than
+--
+181-    # pulses, scaled by depth. At vitality 0: 0.04 health/s -> a full 300-health
+182-    # body in ~2h of CONTINUED total depletion. At 0.4: ~10h. Slow, reversible,
+183:    # winnable: vitality recovery halts it; rest repairs blocks. FIRST GUESSES.
+184-    # The FLOOR stays unarmed — no death fires from this module (increment 4).
+185-    ARMED_MANIFESTATION: bool = True
+186-    MANIFEST_THRESHOLD: float = 0.5

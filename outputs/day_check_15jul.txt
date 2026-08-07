@@ -1,0 +1,13 @@
+files            9
+samples          31,022
+--- cadence (in-run, gaps > 60s excluded as downtime) ---
+median gap       1.15s   -> 0.87 Hz
+mean gap         1.71s
+downtime gaps    17  totalling 9.3h
+in-run time      14.7h
+--- channels ---
+salience         max 0.030600
+autonomic        max 0.156300   median 0.009200
+affective        max 0.180700   median 0.160500
+autonomic above 0.003: 23,152 of 31,022  (74.6%)
+  -> DRIVEN / active day

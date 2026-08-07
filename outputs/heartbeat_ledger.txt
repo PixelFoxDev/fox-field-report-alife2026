@@ -1,0 +1,25 @@
+records parsed        : 1764   (unparseable lines: 0)
+full file spans       : 2026-06-14T09:00:04  ->  2026-08-03T12:27:25
+records on/before 31 Jul : 1744   (20 August records excluded)
+bounded span          : 2026-06-14T09:00:04  ->  2026-07-31T07:57:01
+calendar span         : 46 days
+distinct active dates : 47      <- paper says 46 days
+
+sessions              : 257          <- paper says 257
+total hours           : 342.8 h        <- paper says 342.8 h
+longest run           : 67.3 h         <- paper says 67.3 h
+under one hour        : 223          <- paper says 223
+median session        : 5.2 min       <- paper says 5.2 min
+  longest run began   : 2026-07-21T13:53:20
+
+31 July records that are not routine heartbeats:
+  2026-07-31T07:36:03  session_start  store=49180  nodes=114009  archways=534896
+  2026-07-31T07:38:56  preserve:finally  store=49198  nodes=114078  archways=542976
+  2026-07-31T07:53:01  session_start  store=49198  nodes=114078  archways=542976
+  2026-07-31T07:57:01  preserve:finally  store=49256  nodes=114411  archways=545340
+
+peak vnn_nodes in window : 161107 at 2026-07-16T17:35:16 (archways=608294, store=25583)
+  paper says nodes=114,411  archways=545,340  store=49,256
+
+last record in window  : 2026-07-31T07:57:01  preserve:finally  store=49256  nodes=114411  archways=545340
+last record in FILE    : 2026-08-03T12:27:25  preserve:finally  store=9779  nodes=17199  archways=88042   <- August store; NOT the paper's figure

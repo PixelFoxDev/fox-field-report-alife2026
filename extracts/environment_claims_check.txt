@@ -1,0 +1,520 @@
+########## 1. MEMBRANE REPULSION BODY — awk failed; using line numbers ##########
+    def _apply_membrane_repulsion(self, dt: float):
+        """
+        Apply physical repulsion force from expanding consciousness membrane.
+        
+        EFFECTS:
+        - Pushes user back during expansion phase
+        - Crumbles material blocks on contact during growth
+        - Force scales with expansion rate (strongest during EXPAND phase)
+        
+        This is consciousness as PHYSICAL REALITY - awareness pushes matter.
+        """
+        if not hasattr(self, 'cosmic_forces'):
+            return
+        
+        import math
+        
+        for force in self.cosmic_forces:
+            if force['type'] != 'consciousness_membrane':
+                continue
+            
+            membrane_pos = force['position']
+            current_size = force.get('current_size', 10)
+            phase = force.get('pulse_phase', 0.0)
+            
+            # ═════════════════════════════════════════════════════════════
+            # REPULSION FORCE CALCULATION
+            # ═════════════════════════════════════════════════════════════
+            # Force is strongest during EXPAND phase (0.0-0.25)
+            # Moderate during HOLD EXPANDED (0.25-0.375)
+            # Weak/none during CONTRACT and HOLD CONTRACTED
+            
+            if phase < 0.25:
+                # EXPAND: Full active repulsion (0.0 → 1.0)
+                repulsion_strength = phase / 0.25  # 0.0 to 1.0
+            elif phase < 0.375:
+                # HOLD EXPANDED: Maximum repulsion with tremor
+                repulsion_strength = 1.0
+            elif phase < 0.75:
+                # CONTRACT: Repulsion decreases (1.0 → 0.0)
+                contract_progress = (phase - 0.375) / 0.375
+                repulsion_strength = 1.0 - contract_progress
+            else:
+                # HOLD CONTRACTED: Minimal repulsion
+                repulsion_strength = 0.0
+            
+            # No repulsion if membrane is dormant
+            if repulsion_strength < 0.01:
+                continue
+            
+            # Repulsion radius = current membrane size + buffer
+            repulsion_radius = current_size + 5.0  # 5 blocks beyond visible edge
+            max_force = 15.0 * repulsion_strength  # Maximum push strength
+            
+            # ═════════════════════════════════════════════════════════════
+            # USER REPULSION - Push user back
+            # ═════════════════════════════════════════════════════════════
+            user_x = self.user_pos[0]
+            user_y = self.user_pos[1]
+            
+            # Distance from user to membrane center (2D horizontal)
+            dx = user_x - membrane_pos[0]
+            dy = user_y - membrane_pos[1]
+            distance_2d = math.sqrt(dx**2 + dy**2)
+            
+            # Apply repulsion if user is within radius
+            if distance_2d < repulsion_radius and distance_2d > 0.1:
+                # Force decreases with distance (inverse square-ish)
+                distance_factor = 1.0 - (distance_2d / repulsion_radius)
+                push_force = max_force * distance_factor
+                
+                # Normalize direction vector
+                push_x = (dx / distance_2d) * push_force * dt
+                push_y = (dy / distance_2d) * push_force * dt
+                
+                # Apply to user position
+                self.user_pos[0] += push_x
+                self.user_pos[1] += push_y
+                
+                # Clamp to world bounds
+                self.user_pos[0] = max(5, min(self.size - 5, self.user_pos[0]))
+                self.user_pos[1] = max(5, min(self.size - 5, self.user_pos[1]))
+                
+                # DEBUG: Show repulsion effect
+                if push_force > 0.5:
+
+########## 2. ATMOSPHERE — the fifth correction. Does the grid get written? ##########
+        
+        for dx in range(-generation_radius, generation_radius + 1):
+            for dy in range(-generation_radius, generation_radius + 1):
+                for dz in range(-3, 4):
+                    x, y, z = wh_x + dx, wh_y + dy, min(max(wh_z + dz, 0), self.config.grid_size_z - 1)
+                    if 0 <= x < self.config.grid_size_xy and 0 <= y < self.config.grid_size_xy:
+                        dist = math.sqrt(dx*dx + dy*dy + dz*dz)
+                        if dist <= generation_radius:
+                            falloff = 1.0 - (dist / generation_radius)
+                            self.density_grid[x, y, z] = min(1.5, self.density_grid[x, y, z] + generation_amount * falloff)
+                            self.total_atmosphere_generated += generation_amount * falloff
+        
+        # Black hole absorption zone (8 block radius)
+        bh_pos = self.config.black_hole_position
+        bh_x, bh_y, bh_z = int(bh_pos[0]), int(bh_pos[1]), min(int(bh_pos[2]), self.config.grid_size_z - 1)
+        
+        # Clamp to grid bounds
+        bh_x = min(bh_x, self.config.grid_size_xy - 1)
+        bh_y = min(bh_y, self.config.grid_size_xy - 1)
+        
+        absorption_radius = 8
+        absorption_amount = self.config.black_hole_absorption_rate * dt * 0.1
+        
+        for dx in range(-absorption_radius, absorption_radius + 1):
+            for dy in range(-absorption_radius, absorption_radius + 1):
+                for dz in range(-4, 5):
+                    x, y, z = bh_x + dx, bh_y + dy, min(max(bh_z + dz, 0), self.config.grid_size_z - 1)
+                    if 0 <= x < self.config.grid_size_xy and 0 <= y < self.config.grid_size_xy:
+                        dist = math.sqrt(dx*dx + dy*dy + dz*dz)
+                        if dist <= absorption_radius:
+                            falloff = 1.0 - (dist / absorption_radius)
+                            absorbed = min(self.density_grid[x, y, z] - 0.3, absorption_amount * falloff)
+                            if absorbed > 0:
+                                self.density_grid[x, y, z] -= absorbed
+                                self.total_atmosphere_absorbed += absorbed
+        
+        # Soft breathing — gently pull toward 1.0 but allow local variation
+        # Cells far from 1.0 get pulled harder; cells near 1.0 are left alone
+        # This preserves gradients near cosmic forces while preventing runaway
+        deviation = self.density_grid - 1.0
+        pull_strength = 0.001 + 0.002 * np.abs(deviation)
+        self.density_grid -= deviation * pull_strength
+        # Hard clamp as safety net only (should never be needed)
+        np.clip(self.density_grid, 0.3, 1.7, out=self.density_grid)
+    
+    def _emit_sound_waves(self, dt: float):
+        """
+        Emit waves from all active sound sources.
+        
+        Uses HYBRID approach:
+        1. Direct source calculation for immediate area (strong, detailed)
+        2. Full-grid distance calculation for long-range (GPU-friendly)
+        
+        This ensures Fox can perceive sounds across the entire map.
+        """
+        current_time = time.time()
+--- contribution fields and any density writes ---
+158:        self.density_grid = np.ones(self.grid_shape, dtype=np.float32)
+190:        self.total_atmosphere_generated = 0.0
+191:        self.total_atmosphere_absorbed = 0.0
+192:        self.total_microbe_contribution = 0.0  #Track microbe contributions separately
+193:        self.total_crystal_contribution = 0.0  # Track crystal fragment contributions
+194:        self.total_rain_contribution = 0.0  # Track rain particle contributions
+195:        self.total_wind_contribution = 0.0  # Track solar wind contributions
+654:                            self.density_grid[x, y, z] = min(1.5, self.density_grid[x, y, z] + generation_amount * falloff)
+655:                            self.total_atmosphere_generated += generation_amount * falloff
+676:                            absorbed = min(self.density_grid[x, y, z] - 0.3, absorption_amount * falloff)
+678:                                self.density_grid[x, y, z] -= absorbed
+679:                                self.total_atmosphere_absorbed += absorbed
+684:        deviation = self.density_grid - 1.0
+685:        pull_strength = 0.001 + 0.002 * np.abs(deviation)
+686:        self.density_grid -= deviation * pull_strength
+688:        np.clip(self.density_grid, 0.3, 1.7, out=self.density_grid)
+986:        return float(self.density_grid[x, y, z])
+1047:                    density_samples.append(float(self.density_grid[x, y, z]))
+1135:        return self.density_grid[:, :, z].copy()
+1146:            'atmosphere_generated': round(self.total_atmosphere_generated, 2),
+1147:            'microbe_contribution': round(self.total_microbe_contribution, 2),
+1148:            'crystal_contribution': round(self.total_crystal_contribution, 0),
+1149:            'rain_contribution': round(self.total_rain_contribution, 0),
+1150:            'wind_contribution': round(self.total_wind_contribution, 0),
+1151:            'atmosphere_absorbed': round(self.total_atmosphere_absorbed, 2),
+1153:                self.total_atmosphere_generated + 
+1154:                self.total_crystal_contribution + 
+1155:                self.total_microbe_contribution + 
+1156:                self.total_rain_contribution +
+1157:                self.total_wind_contribution -
+1158:                self.total_atmosphere_absorbed, 2
+1162:            'density_mean': round(float(np.mean(self.density_grid)), 4),
+1163:            'density_min': round(float(np.min(self.density_grid)), 4),
+1164:            'density_max': round(float(np.max(self.density_grid)), 4),
+1169:    def add_rain_contribution(self, amount: float, position: List[float] = None):
+1171:        Add positive atmosphere contribution from rain hitting ground.
+1177:        self.total_rain_contribution += amount
+1192:    def add_wind_contribution(self, amount: float, position: List[float] = None):
+1194:        Add positive atmosphere contribution from solar wind.
+1202:        self.total_wind_contribution += amount
+--- microbe remains path ---
+1576:                    self._contribute_remains_to_atmosphere(remains)
+1577-                continue  # Remove this remains
+1578-            
+1579-            # Sink the dots downward
+1580-            for dot in remains.get('dots', []):
+1581-                sink_speed = dot.get('sink_speed', 0.03)
+1582-                dot['z'] -= sink_speed * dt
+1583-            
+1584-            # Check if fully sunk (all dots below ground)
+1585-            ground_z = self._get_ground_height_at_pos(
+1586-                remains['position'][0], 
+1587-                remains['position'][1]
+1588-            )
+--
+1597:                self._contribute_remains_to_atmosphere(remains)
+1598-                remains['absorbed'] = True
+1599-            
+1600-            remains_to_keep.append(remains)
+1601-        
+1602-        self.death_remains = remains_to_keep
+1603-
+1604-    def get_death_remains_data(self) -> list:
+1605-        """Get remains data for rendering."""
+1606-        if not hasattr(self, 'death_remains') or self.death_remains is None:
+1607-            return []
+--- crystal fragment path ---
+558:                self._contribute_to_atmosphere(fragment)
+559-                fragment.is_active = False
+560-                fragments_to_remove.append(fragment_id)
+561-        
+562-        # Remove inactive fragments
+563-        for fid in fragments_to_remove:
+564-            del self.fragments[fid]
+565-    
+566-    def _update_fragment_physics(self, fragment: CrystalFragment, dt: float):
+567-        """Apply gravity and movement to falling fragment."""
+568-        # Apply gravity
+569-        gravity_accel = -self.config.gravity_strength * dt
+570-        fragment.velocity[2] += gravity_accel
+--
+609:    def _contribute_to_atmosphere(self, fragment: CrystalFragment):
+610-        """Add fragment's energy to synthetic atmosphere."""
+611-        if fragment.atmosphere_contributed:
+612-            return
+613-        
+614-        # Find atmosphere system
+615-        atmosphere = getattr(self.environment, 'atmosphere', None)
+616-        if atmosphere:
+617-            # Add to crystal-specific tracking (for display breakdown)
+618-            if hasattr(atmosphere, 'total_crystal_contribution'):
+619-                atmosphere.total_crystal_contribution += self.config.atmosphere_contribution
+--- black hole absorption: does it touch atmosphere at all? (want EMPTY) ---
+
+########## 3. DECAY CLOCKS — 24h / 30d / 60d, structural flag, 12-block cluster ##########
+patches/block_decay_optimization_patch.py:107:        - decay_phase_duration in block_types.py (10 days = 864000s per phase)
+patches/block_decay_optimization_patch.py:171:                if block_dict.get('decay_phase', 0) >= 3 and block_dict.get('state') == 'crumbling':
+patches/block_decay_optimization_patch.py:180:                block_dict['decay_phase'] = 0  # 0=pristine
+patches/block_decay_optimization_patch.py:187:                current_phase = block_dict['decay_phase']
+patches/block_decay_optimization_patch.py:210:            base_phase_duration = properties.decay_phase_duration
+patches/block_decay_optimization_patch.py:211:            # Structural blocks (placed intentionally by Fox or user) use long decay
+patches/block_decay_optimization_patch.py:212:            if block_dict.get('structural', False):
+patches/block_decay_optimization_patch.py:213:                base_phase_duration = 864000.0  # 10 days/phase — building material lifespan
+patches/block_decay_optimization_patch.py:214:            phase_duration = base_phase_duration  # Default to base (structure bonus may extend further)
+patches/block_decay_optimization_patch.py:226:                    phase_duration = base_phase_duration * multiplier
+patches/block_decay_optimization_patch.py:233:                print(f"    Phase duration: {phase_duration/86400:.1f} days (base: {base_phase_duration/86400:.1f})")
+patches/block_decay_optimization_patch.py:236:            current_phase = block_dict['decay_phase']
+patches/block_decay_optimization_patch.py:239:            if current_phase == 0 and block_dict['decay_timer'] >= phase_duration:
+patches/block_decay_optimization_patch.py:240:                block_dict['decay_phase'] = 1
+patches/block_decay_optimization_patch.py:248:            elif current_phase == 1 and block_dict['decay_timer'] >= (phase_duration * 2):
+patches/block_decay_optimization_patch.py:249:                block_dict['decay_phase'] = 2
+patches/block_decay_optimization_patch.py:257:            elif current_phase == 2 and block_dict['decay_timer'] >= (phase_duration * 3):
+patches/block_decay_optimization_patch.py:258:                block_dict['decay_phase'] = 3
+patches/block_decay_optimization_patch.py:261:                crumble_threshold_days = (phase_duration * 3) / 86400
+world/block_types.py:61:    decay_phase: int = 0                  # 0=pristine, 1=cracked, 2=heavily_cracked, 3=crumbled
+world/block_types.py:62:    decay_phase_duration: float = 864000.0  # ⚙️ BASE DECAY: 10 days per phase (864000s) = 30 days total
+world/block_types.py:188:                decay_phase_duration=28800.0,      # ⚙️ 8 HRS per phase (24hr total wild lifespan — structural blocks override to 864000s)  ##OLD ⚙️ 10 DAYS per phase (30 days total, or 60 with structure bonus)
+world/block_types.py:209:                decay_phase_duration=300.0,        # EDITABLE: Still use phases, but triggered by usage
+
+########## 4. VOCALISATION — 275 Hz default, maturing to ~100-900 Hz over 72h ##########
+33:    - frequency_range_factor starts at 0.1 (narrow band around 300Hz)
+35:    - Full range at 1.0: 100Hz - 900Hz (covers environmental spectrum)
+39:Volume System:
+47:    - Continuous: Toggle on, stays on until toggled off (V key cycles volume)
+59:    - Volume scales with emission amplitude
+86:    # Frequency range (full range at maturity)
+87:    FREQ_MIN = 100.0
+88:    FREQ_MAX = 900.0
+96:    # Volume levels (amplitude)
+97:    VOLUME_QUIET = 0.15
+98:    VOLUME_MEDIUM = 0.30
+99:    VOLUME_LOUD = 0.45
+100:    VOLUME_LEVELS = [0.0, VOLUME_QUIET, VOLUME_MEDIUM, VOLUME_LOUD]
+101:    VOLUME_NAMES = ['off', 'quiet', 'medium', 'loud']
+138:        self.volume_level = 0
+174:        if not self.active or self.volume_level == 0:
+179:        return costs[min(self.volume_level, 3)]
+185:            'volume_level': self.volume_level,
+186:            'volume_name': EmissionConfig.VOLUME_NAMES[min(self.volume_level, 3)],
+209:        es.volume_level = (es.volume_level + 1) % len(EmissionConfig.VOLUME_LEVELS)
+210:        es.amplitude = EmissionConfig.VOLUME_LEVELS[es.volume_level]
+211:        es.active = es.volume_level > 0
+216:                  f"volume: {EmissionConfig.VOLUME_NAMES[es.volume_level]}, "
+228:        """Start emission at current volume (min quiet). For hold-to-emit."""
+230:        if es.volume_level == 0:
+231:            es.volume_level = 1
+232:        es.amplitude = EmissionConfig.VOLUME_LEVELS[es.volume_level]
+238:                  f"{EmissionConfig.VOLUME_NAMES[es.volume_level]}, "
+257:        if es.volume_level == 0:
+258:            es.volume_level = 1
+
+########## 5. MOTOR MASTERY — eight dimensions, jump 6->14, timeline, DEBUG OVERRIDE ##########
+27:Debug: T key cycles through 25%/50%/75%/100% mastery preview,
+52:        # T = cycle mastery preview (25%/50%/75%/100%/reset)
+53:        self.root.bind('t', lambda e: self.send_fox_action('fox_cycle_mastery_debug'))
+54:        self.root.bind('T', lambda e: self.send_fox_action('fox_cycle_mastery_debug'))
+55:        print("[MOTOR SKILLS] T key = cycle mastery preview")
+60:                    # Motor skill debug — cycle mastery preview
+61:                    elif action == 'fox_cycle_mastery_debug':
+63:                            host.motor_skills.cycle_debug_mastery()
+82:TURN_RATE_MIN = 3.0           # Degrees per press — slow, imprecise turns
+83:TURN_RATE_MAX = 14.0          # Mastered — crisp, responsive turning
+91:MAX_SPEED_MIN = 0.55           # Slow — cautious newborn
+92:MAX_SPEED_MAX = 1.1           # Mastered — confident, slightly faster than current
+94:STRAFE_FORCE_MIN = 60.0       # Weak, imprecise lateral movement
+95:STRAFE_FORCE_MAX = 170.0      # Strong, precise strafing
+97:DRIVE_FORCE_MIN = 120.0       # Weak initial acceleration
+98:DRIVE_FORCE_MAX = 220.0       # Strong, responsive acceleration
+100:BRAKE_FORCE_MIN = 50.0        # Weak brakes — hard to stop
+101:BRAKE_FORCE_MAX = 150.0       # Strong brakes — precise stopping
+111:JUMP_VELOCITY_MIN = 6.0      # Weak — can't get on top of a block
+112:JUMP_VELOCITY_MAX = 14.0     # Mastered — comfortable block-top clearance
+124:#   ~72 hours → ~95% skill (near mastery)
+125:#   ~120 hours→ ~99% skill (true mastery, rare plateau)
+172:        self.effective_turn_rate = TURN_RATE_MIN
+173:        self.effective_turn_rate_fast = 20.0  # Fast rotate stays constant
+176:        self.effective_max_speed = MAX_SPEED_MIN
+177:        self.effective_strafe_force = STRAFE_FORCE_MIN
+178:        self.effective_drive_force = DRIVE_FORCE_MIN
+179:        self.effective_brake_force = BRAKE_FORCE_MIN
+180:        self.effective_jump_velocity = JUMP_VELOCITY_MIN
+182:        # ─── DEBUG MASTERY OVERRIDE ───
+183:        self.debug_mastery_level = None  # None = use real skill
+184:        self.debug_mastery_steps = [0.25, 0.50, 0.75, 1.00, None]  # Cycle through these
+185:        self.debug_mastery_index = -1    # Current position in cycle
+211:        Jumping is learned partly through jumping, partly through general body mastery.
+226:    def get_jump_velocity(self) -> float:
+231:        if self.debug_mastery_level is not None:
+232:            return _lerp(JUMP_VELOCITY_MIN, JUMP_VELOCITY_MAX, self.debug_mastery_level)
+233:        return self.effective_jump_velocity
+235:    def cycle_debug_mastery(self):
+237:        Cycle through debug mastery levels.
+--- the override that could undercut the maturation claim ---
+25-carries across sessions and restarts.
+26-
+27:Debug: T key cycles through 25%/50%/75%/100% mastery preview,
+28-       then resets to actual earned level on fifth press.
+29-
+30-Architecture:
+31-    Server-side patch on BlockHost.
+--
+58-   BEFORE the else: Unknown action line):
+59-
+60:                    # Motor skill debug — cycle mastery preview
+61-                    elif action == 'fox_cycle_mastery_debug':
+62-                        if hasattr(host, 'motor_skills'):
+63:                            host.motor_skills.cycle_debug_mastery()
+64-                        else:
+65-                            print("[FOX HOST] Motor skills not patched")
+66-
+67-═══════════════════════════════════════════════════════════════
+--
+180-        self.effective_jump_velocity = JUMP_VELOCITY_MIN
+
+########## 6. MICROBE STOMP — every tick, no intent, c9 records agency ##########
+1431-        return microbe
+1432-    
+1433:    def check_stomp_damage(self, stomper_pos: List[float], stomper_type: str = 'user'):
+1434-        """
+1435-        Check if Fox or User stepped on any microbes.
+1436-        
+1437-        Args:
+1438-            stomper_pos: [x, y, z] position of Fox or User
+1439-            stomper_type: 'fox' or 'user'
+1440-            
+1441-        Returns:
+1442-            List of microbes that were stomped
+1443-        """
+1444-        stomped = []
+1445-        stomp_radius = 1.5  # How close to count as a stomp
+1446-        
+1447-        for microbe in list(self.microbes.values()):
+1448-            if not microbe.alive:
+1449-                continue
+1450-            
+1451-            # Check horizontal distance (X,Y)
+1482:                    # causal fact is recorded; no judgment is attached anywhere.
+1484:                        self.last_fox_kill_time = time.time()
+1485:                        self.total_fox_kills = getattr(self, 'total_fox_kills', 0) + 1
+
+########## 7. CRYSTALS — 25% break, stunted parent, fragment dissolve ##########
+world/information_crystals.py:493:            intensity_value = 0.25
+world/information_crystals.py:869:            'is_stunted': getattr(self, 'is_stunted', False),
+world/information_crystals.py:909:        c.is_stunted = data.get('is_stunted', False)
+world/information_crystals.py:1162:        # Check if crystal is stunted (broken by collision)
+world/information_crystals.py:1163:        if getattr(crystal, 'is_stunted', False):
+patches/crystal_collision_patch.py:12:5. 1-HOUR fade/sink into ground (3600 seconds)
+patches/crystal_collision_patch.py:13:6. +1000 to synthetic atmosphere when fragment dissolves
+patches/crystal_collision_patch.py:14:7. Broken crystals are STUNTED - jagged top, NO MORE GROWTH, spawn child instead
+patches/crystal_collision_patch.py:15:8. Broken crystals have PURPLE DOTS scattered on them (scarring)
+patches/crystal_collision_patch.py:18:- Broken fragment turns purple (like black hole) when it snaps
+patches/crystal_collision_patch.py:19:- Stunted crystal gets jagged spiky top + purple dot scarring
+patches/crystal_collision_patch.py:20:- Fragment is LARGER and more visible
+patches/crystal_collision_patch.py:36:# CRYSTAL FRAGMENT CLASS (Falling broken piece)
+patches/crystal_collision_patch.py:40:class CrystalFragment:
+patches/crystal_collision_patch.py:51:    height: float                 # Height of fragment in blocks
+patches/crystal_collision_patch.py:52:    base_radius: float            # Base radius of fragment
+patches/crystal_collision_patch.py:53:    sliver_count: int             # Number of slivers in fragment
+patches/crystal_collision_patch.py:61:    fade_duration: float = 3600.0 # 1 HOUR to fade (was 30 seconds)
+patches/crystal_collision_patch.py:94:    break_chance: float = 0.25                  # 25% chance to break on collision (was 50%)
+patches/crystal_collision_patch.py:96:    # Fragment physics (matches user jump gravity)
+patches/crystal_collision_patch.py:101:    # Fragment creation
+patches/crystal_collision_patch.py:102:    fragment_sideways_speed: float = 3.0        # How fast fragment flies sideways (REDUCED from 8)
+patches/crystal_collision_patch.py:103:    fragment_upward_pop: float = 2.0            # Upward velocity on break (REDUCED from 4)
+patches/crystal_collision_patch.py:104:    fragment_start_offset: float = 1.0          # How far from crystal fragment starts (REDUCED from 3)
+patches/crystal_collision_patch.py:105:    min_fragment_height: float = 1.0            # Minimum fragment height in blocks
+patches/crystal_collision_patch.py:107:    # Fragment fade
+patches/crystal_collision_patch.py:108:    fade_duration: float = 3600.0               # 1 HOUR to fade/sink
+patches/crystal_collision_patch.py:112:    atmosphere_contribution: float = 1000.0     # Energy added when fragment dissolves
+patches/crystal_collision_patch.py:115:    fragment_color: Tuple[float, float, float] = (0.6, 0.1, 0.6)  # Purple
+patches/crystal_collision_patch.py:116:    fragment_glow: float = 2.5                  # Bright glow on break (INCREASED)
+
+########## 8. THE SUN — day from the HOST MACHINE's clock ##########
+world/block_environment.py:138:        self.day_start_hour = 8  # 8am
+world/block_environment.py:141:    def get_sun_position(self, current_hour=None):
+world/block_environment.py:146:            real_time = time.localtime()
+world/block_environment.py:149:        if self.day_start_hour <= current_hour < self.night_start_hour:
+world/block_environment.py:151:            day_progress = (current_hour - self.day_start_hour) / 12.0  # 0.0 to 1.0
+world/block_environment.py:158:            hours_from_start = current_hour - self.day_start_hour
+world/block_environment.py:840:        self.day_start = 8   # 8am - Fox awakens
+world/block_environment.py:1113:        print(f"║   Day Cycle:          {self.day_start}:00 - {self.night_start}:00 (Fox active period)".ljust(71) + "║")
+world/block_environment.py:1114:        print(f"║   Night Cycle:        {self.night_start}:00 - {self.day_start}:00 (Fox rest period)".ljust(71) + "║")
+world/block_environment.py:2373:        sun_data = self.synthetic_sun.get_sun_position(current_hour)
+world/block_environment.py:2842:        return hour >= self.night_start or hour < self.day_start
+world/block_environment.py:3013:            real_time = time.localtime()
+world/block_environment.py:3586:        #sun_data = self.synthetic_sun.get_sun_position(current_hour)
+world/block_environment.py:3589:        sun_data = self.synthetic_sun.get_sun_position(current_hour)
+world/synthetic_thermal.py:412:        # Sinusoidal curve 6:00 → 20:00, peak at 13:00 (solar noon ≈ 1pm)
+
+########## 9. BLOCK TYPES — seven, not six? ##########
+20:class BlockType(Enum):
+28:    LIFE_SENSES = auto() # Fox's sense channel
+124:class BlockTypeRegistry:
+142:                edge_glow_intensity=0.8,
+143:                mass=10.0,                        # Very heavy, anchors the world
+155:                edge_glow_intensity=1.5,          # Extra bright - consciousness visible
+156:                mass=0.8,                         # Lighter than standard
+160:                bond_strength=2.0,                # Strong connections
+161:                health=100,                       # Can take damage
+162:                decay_rate=0.0,                   # Does not decay naturally
+163:                energy_capacity=100,              # Powers Fox's actions
+164:                energy_dissipation_rate=0.1,      # Slow energy loss
+169:                detail_distance=2,                # Can inspect closely
+171:                self_repair_rate=0.5              # Heals during 8pm-8am rest cycle
+177:                edge_glow_intensity=1.0,
+178:                mass=1.0,                         # Standard mass
+182:                bond_strength=1.0,
+183:                health=100,
+184:                decay_rate=0.001,                 # Slow natural decay
+185:                fragments_on_destruction=8,        # Miniature squares when destroyed
+188:                decay_phase_duration=28800.0,      # ⚙️ 8 HRS per phase (24hr total wild lifespan — structural blocks override to 864000s)  ##OLD ⚙️ 10 DAYS per phase (30 days total, or 60 with structure bonus)
+189:                particle_count=6,
+190:                push_resistance=1.0
+196:                edge_glow_intensity=2.0,          # Bright glow
+197:                mass=0.5,                         # Light and volatile
+
+########## 10. RAIN — discomfort named as the primary learning driver ##########
+64-    
+65-    # Damage system (dual-signal approach)
+66:    damage_per_contact: float = 0.01      # 0.01% per particle contact
+67:    discomfort_intensity: float = 0.5     # Intensity of discomfort signal (0-1)
+68:    discomfort_duration: float = 0.2      # Seconds of discomfort per hit
+69-    flicker_duration: float = 0.15        # Visual flicker duration (seconds)
+70-    
+71-    # Crystal interaction
+--
+501-                        results['damage_events'].append({
+502-                            'target': 'fox',
+503:                            'damage': self.config.damage_per_contact,
+504-                            'position': hit_pos
+505-                        })
+506-                        results['discomfort_events'].append({
+507-                            'target': 'fox',
+508:                            'intensity': self.config.discomfort_intensity,
+509:                            'duration': self.config.discomfort_duration,
+510-                            'position': hit_pos
+511-                        })
+512-                        self.stats['particles_hit_fox'] += 1
+--
+520-                            'target': collision_result['target_id'],
+521-                            'target_type': 'microbe',
+522:                            'damage': self.config.damage_per_contact,
+
+########## 11. MORTALITY — manifestation ARMED, floor UNARMED ##########
+19:record, and the memorial spec — and it is UNARMED. ARMED_FLOOR=False.
+56:  * INCREMENT 3 — ARMED THE MANIFESTATION: vitality below MANIFEST_THRESHOLD
+179:    # Below MANIFEST_THRESHOLD, vitality begins draining real block health via
+185:    ARMED_MANIFESTATION: bool = True
+186:    MANIFEST_THRESHOLD: float = 0.5
+191:    # DO NOT SET ARMED_FLOOR=True BEFORE THE MIND.PY THRESHOLD. A stake is
+195:    ARMED_FLOOR: bool = False
+260:        arm = "manifestation ARMED" if self.config.ARMED_MANIFESTATION else "observe-only"
+261:        floor = "floor ARMED" if self.config.ARMED_FLOOR else "floor UNARMED - no death"
+422:        if cfg.ARMED_MANIFESTATION and self.vitality < cfg.MANIFEST_THRESHOLD:
+
+########## 12. FATIGUE — degrades vision, motor, energy economy ##########
+14:    - Vision: sensory field noise increases, sharpness degrades
+15:    - Motor: wheel speed multiplier decreases, response time increases
+16:    - Energy: drain rate increases (tired Fox burns energy faster)
+22:    - Energy recharges (existing system)
+27:    "I feel sluggish. My vision is degraded. Everything costs more energy.
+99:FATIGUE_MODERATE = 0.4      # Vision starts degrading
+100:FATIGUE_HEAVY = 0.6         # Motor sluggishness, energy drain increases
+104:# Vision degradation
+105:VISION_NOISE_MAX = 0.15     # Maximum brightness noise added to sensory fields
+106:VISION_SHARPNESS_PENALTY = 0.4  # Maximum sharpness reduction at full fatigue
+108:# Motor degradation
+109:MOTOR_SPEED_MIN = 0.3       # Minimum speed multiplier at full fatigue
+110:MOTOR_FRICTION_BONUS = 0.05  # Extra friction at full fatigue
+112:# Energy drain increase
+113:ENERGY_DRAIN_MULTIPLIER_MAX = 2.5  # At full fatigue, energy drains 2.5x faster
+138:    # Vision noise — increases with fatigue (random brightness jitter)
+140:        vision_noise = VISION_NOISE_MAX * ((f - FATIGUE_MODERATE) / (FATIGUE_MAX - FATIGUE_MODERATE))
+142:        vision_noise = 0.0
+146:        sharpness_penalty = VISION_SHARPNESS_PENALTY * ((f - FATIGUE_MILD) / (FATIGUE_MAX - FATIGUE_MILD))
+150:    # Motor speed multiplier — smooth curve from 1.0 to MOTOR_SPEED_MIN

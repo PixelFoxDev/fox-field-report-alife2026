@@ -1,0 +1,17 @@
+[VNN-ASSO 15:52:01] AssociativeLayer initialised — warm-up 60s active
+[VNN-REFL 15:52:01] ReflectiveLayer initialised — Stage 1 (sensory + motor reflection, formation only). Core writes DISABLED.
+[VNN-ASSO 15:54:38] AssociativeLayer initialised — warm-up 60s active
+[VNN-REFL 15:54:38] ReflectiveLayer initialised — Stage 1 (sensory + motor reflection, formation only). Core writes DISABLED.
+[VNN-REFL 15:54:39] Stage 4 short-circuit: eligible=0 of 0 reflective nodes (sustained-1st-order gate=1800s, coherence=0.0302, salience=0.0000)
+[VNN-REFL 15:59:39] Stage 4 short-circuit: eligible=0 of 6 reflective nodes (sustained-1st-order gate=1800s, coherence=0.0000, salience=0.0000)
+[VNN-REFL 16:04:41] Stage 4 short-circuit: eligible=0 of 6 reflective nodes (sustained-1st-order gate=1800s, coherence=0.0000, salience=0.0000)
+[VNN-REFL 16:09:42] Stage 4 short-circuit: eligible=0 of 9 reflective nodes (sustained-1st-order gate=1800s, coherence=0.0000, salience=0.0000)
+[VNN-REFL 16:14:45] Stage 4 short-circuit: eligible=0 of 9 reflective nodes (sustained-1st-order gate=1800s, coherence=0.0000, salience=0.0000)
+[VNN-REFL 16:19:46] Stage 4 short-circuit: eligible=0 of 9 reflective nodes (sustained-1st-order gate=1800s, coherence=0.0000, salience=0.0000)
+[VNN-REFL 16:24:46] Stage 4 short-circuit: eligible=0 of 9 reflective nodes (sustained-1st-order gate=1800s, coherence=0.0000, salience=0.0001)
+[VNN-REFL 16:29:47] 5-min summary: reflective_nodes=9, new_nodes=0, sensory_reflection=8, motor_reflection=1, associative_reflection=0, inert_now=0/9, inerted=0, re_illuminated=0, inter_arch
+[VNN-REFL 16:34:48] 5-min summary: reflective_nodes=10, new_nodes=1, sensory_reflection=8, motor_reflection=1, associative_reflection=1, inert_now=0/10, inerted=0, re_illuminated=0, inter_ar
+[VNN-REFL 16:39:49] 5-min summary: reflective_nodes=11, new_nodes=1, sensory_reflection=8, motor_reflection=1, associative_reflection=2, inert_now=0/11, inerted=0, re_illuminated=0, inter_ar
+[VNN-REFL 16:44:51] 5-min summary: reflective_nodes=24, new_nodes=13, sensory_reflection=21, motor_reflection=1, associative_reflection=2, inert_now=0/24, inerted=0, re_illuminated=0, inter_
+[VNN-ASSO 16:57:38] AssociativeLayer initialised — warm-up 60s active
+[VNN-REFL 16:57:38] ReflectiveLayer initialised — Stage 1 (sensory + motor reflection, formation only). Core writes DISABLED.

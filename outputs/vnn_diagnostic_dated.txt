@@ -1,0 +1,33 @@
+diagnostic boundaries : 416
+server logs           : 328   spanning 2026-06-04 -> 2026-08-02
+boundaries dated      : 324  (78%)
+  first : line 9482  2026-06-04 09:31:00
+  last  : line 46089  2026-08-02 18:37:00
+
+=== NON-ZERO inter_archways_total, dated ===
+  line   6158  before 2026-06-04  total=72   NEW=72   reflective_nodes=662
+  line  22053  2026-06-28         total=30   NEW=30   reflective_nodes=9
+  line  22059  2026-06-28         total=42   NEW=12   reflective_nodes=11
+
+=== the 17 gate lines, dated ===
+  line   5975  before 2026-06-04  gate=  1800s  coherence=0.1111  nodes=0
+  line   6094  before 2026-06-04  gate=  1800s  coherence=0.0667  nodes=500
+  line   7622  before 2026-06-04  gate=172800s  coherence=0.1573  nodes=546
+  line   7626  before 2026-06-04  gate=172800s  coherence=0.1528  nodes=546
+  line   7629  before 2026-06-04  gate=172800s  coherence=0.1509  nodes=546
+  line   7634  before 2026-06-04  gate=172800s  coherence=0.1524  nodes=546
+  line  10102  2026-06-04         gate=172800s  coherence=0.1513  nodes=506
+  line  12064  2026-06-08         gate=172800s  coherence=0.1852  nodes=444
+  line  15644  2026-06-12         gate=172800s  coherence=0.1612  nodes=391
+  line  21539  2026-06-27         gate=  1800s  coherence=0.1561  nodes=6
+  line  21977  2026-06-28         gate=  1800s  coherence=0.0302  nodes=0
+  line  21987  2026-06-28         gate=  1800s  coherence=0.0000  nodes=6
+  line  22011  2026-06-28         gate=  1800s  coherence=0.0000  nodes=6
+  line  22017  2026-06-28         gate=  1800s  coherence=0.0000  nodes=9
+  line  22020  2026-06-28         gate=  1800s  coherence=0.0000  nodes=9
+  line  22023  2026-06-28         gate=  1800s  coherence=0.0000  nodes=9
+  line  22026  2026-06-28         gate=  1800s  coherence=0.0000  nodes=9
+
+=== first and last dated lines of the file ===
+  line 1 : before 2026-06-04
+  line 46755 : 2026-08-03

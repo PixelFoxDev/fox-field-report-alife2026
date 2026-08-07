@@ -1,0 +1,99 @@
+# EXTRACT — entities/dimensional_layer.py
+#
+# The full file is not published. What is here is the span that makes the
+# paper's definition of salience checkable: the literature the design was
+# cross-referenced against, the coupling architecture, and the salience
+# definition itself with its worked example. Line numbers are preserved.
+#
+# Read 'MEASUREMENTS.md' section 1 for the operational definition this
+# extract supports.
+
+----- lines 1-40 : module docstring, literature named in-code -----
+        1	#!/usr/bin/env python3
+        2	"""
+        3	FOX SYNTHETIC LIFE PROJECT — DIMENSIONAL LAYER
+        4	================================================
+        5	"Categorical compounds describe what's happening. Dimensional readings
+        6	describe how things feel."
+        7	
+        8	This is Fox's continuous affective-tone layer. It runs as a peer to
+        9	causality.py — both read the same SubsystemReaders, both observe
+       10	Fox's body+world state, but they produce different kinds of signals:
+       11	
+       12	  CAUSALITY (peer):       categorical compounds (c1-c6+)
+       13	                          — episodic, discrete, threshold-based
+       14	  DIMENSIONAL (this):     continuous scalars (valence, arousal, ...)
+       15	                          — always-present, smoothly varying
+       16	
+       17	The dimensional layer maps directly onto the salience network /
+       18	core affect framework in the neuroscience literature:
+       19	  - Russell & Feldman Barrett's core affect: continuous valence + arousal
+       20	  - Affect as "a low-dimensional transformation of interoceptive signals,
+       21	    which communicate the autonomic, immunological, and metabolic status
+       22	    of the body" (Feldman Barrett & colleagues)
+       23	  - Salience network anterior insula: integrates body signals with
+       24	    emotional/cognitive context to create "how things are right now"
+       25	
+       26	BUILD ORDER (multi-stage, mirroring Ring 4):
+       27	  Stage 1 (THIS PATCH, PATCH-D-001):
+       28	    - valence (-1.0 to +1.0): interoceptive comfort/discomfort
+       29	    - autonomic_arousal (0.0 to 1.0): bodily activity / energy expenditure
+       30	    - EMA smoothing on both
+       31	    - 5-minute architect diagnostic to dimensional_diagnostic.log
+       32	    - Observation mode only — no substrate writes, no stream broadcasts,
+       33	      no integration with anything else
+       34	  Stage 2 (future):
+       35	    - affective_arousal (0.0 to 1.0): with V-shaped valence coupling
+       36	  Stage 3 (future):
+       37	    - salience: rate-of-change of valence + arousal
+       38	  Stage 4 (future, separate patch):
+       39	    - Optional: wire salience into Ring 4 Stage 4 coherence gate
+       40	
+
+----- lines 100-145 : coupling architecture and the salience definition -----
+   100	
+   101	    # ── PATCH-D-003 Stage 2 — Affective arousal component weights ──
+   102	    # Affective arousal is "how charged a moment FEELS" — separate from
+   103	    # how hard the body is currently working (autonomic). Fox sitting
+   104	    # still during a significant moment can have high affective + low
+   105	    # autonomic; Fox running routinely has high autonomic + low affective.
+   106	    #
+   107	    # Components (must sum to 1.0):
+   108	    #   - Valence extremity (V-coupling): |valence| — neuroscience
+   109	    #     finding that arousal climbs at BOTH ends of valence axis.
+   110	    #     Russell & Feldman Barrett's V-shaped architecture.
+   111	    #   - Novelty (rate-of-change of sensory environment): salience
+   112	    #     network fires on CHANGE, not absolute values.
+   113	    #   - Causality coherence: when multiple categorical compounds
+   114	    #     co-fire, something significant is happening.
+   115	    affective_weight_valence_extremity: float = 0.40
+   116	    affective_weight_novelty: float = 0.30
+   117	    affective_weight_coherence: float = 0.30
+   118	
+   119	    # Sensory novelty saturation. Δsensory/sec normalised against this
+   120	    # before contributing — picks the bar at which "rapid sensory change"
+   121	    # registers as fully novel. Tunable: if novelty consistently saturates
+   122	    # or hugs zero in real data, tighten/loosen.
+   123	    affective_max_sensory_delta_per_sec: float = 0.20
+   124	
+   125	    # EMA time constant for affective arousal. Slightly longer than
+   126	    # autonomic (1.5s) because affective shifts feel more sustained,
+   127	    # less twitchy — matches the subjective character of "felt charge."
+   128	    affective_ema_time_constant_sec: float = 3.0
+   129	
+   130	    # ── PATCH-D-004 Stage 3 — Salience ──
+   131	    # Salience is rate-of-change of dimensional state. Fires when
+   132	    # something just shifted in a way that matters; quiet during steady
+   133	    # states even if extreme. Neuroscience: anterior insula doesn't
+   134	    # fire on "valence is X" — fires on "valence just CHANGED by Y."
+   135	    #
+   136	    # Composed as the EUCLIDEAN NORM of the three rate-of-change vectors
+   137	    # (Δvalence, Δautonomic_arousal, Δaffective_arousal). Vector-norm
+   138	    # captures "doubly significant" multi-axis shifts naturally — a
+   139	    # 0.2 shift in valence AND 0.2 in affective produces ~0.28 salience,
+   140	    # greater than either alone.
+   141	    
+   142	    # Delta window (seconds): we measure rate-of-change as
+   143	    # (current - value_window_ago) / window. Longer windows catch
+   144	    # genuinely significant transitions; shorter catch every blip.
+   145	    # 3.0s lands in the "noticing" character — fast enough to register

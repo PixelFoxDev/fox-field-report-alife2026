@@ -1,0 +1,36 @@
+ARTEFACT  fox_memory_store.json.gz.prev  (the paper's store)
+saved_at   2026-07-31 07:56:50  reason: clean_shutdown
+entries    49256  metadata.entry_count: 49256
+source_marker: {'world': 49256}
+
+layer_stats:
+{
+  "ticks": 582,
+  "total_nodes": 114411,
+  "total_archways": 545340,
+  "sensory_total": 3544,
+  "sensory_active": 129,
+  "motor_total": 108,
+  "motor_active": 83,
+  "associative_total": 68842,
+  "associative_active": 456,
+  "reflective_total": 41917,
+  "reflective_active": 81,
+  "core_total": 0,
+  "core_active": 0,
+  "sensory_visual": 255,
+  "sensory_tactile": 22,
+  "sensory_thermal": 82,
+  "sensory_auditory": 951,
+  "sensory_force": 21,
+  "sensory_atmospheric": 2213,
+  "motor_locomotion": 19,
+  "motor_manipulation": 64,
+  "motor_vocalization": 25
+}
+
+associative_formed_triangles: 68842
+reflective_formed_patterns  : 41917
+nodes array                 : 114411
+archways array              : 545340
+config_snapshot             : {"novelty_distance": 0.8, "activation_threshold": 0.1, "decay_half_life": 120.0}

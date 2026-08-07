@@ -1,0 +1,21 @@
+PROFILE headers parsed              : 1069
+vnn.snapshot_build lines seen       : 1069      <- grep -ci snapshot said 1,069
+reports with snapshot calls > 0     : 1041      <- paper says 1,041
+reports with snapshot calls == 0    : 28
+reports missing a WHOLE TICK value  : 0
+
+Snapshot share of the tick (the profiler's own % column)
+  reports                           : 1041
+  median                            : 104.4%   <- paper says 104%
+  over 100%                         : 627 = 60.2%   <- paper says 60%
+  maximum                           : 208.0%   <- paper says 208%
+  90th percentile                    : 140.2%
+  10th percentile                    : 70.9%   <- the F11 '~70%' console label
+  largest smoothed snapshot ms/tick  : 706.82 ms   <- paper calls this a single snapshot
+
+cross-check, computed vs logged %  : median diff 0.027 pts, max 1.89 pts
+
+first report (the fresh-store baseline)
+  19:49:15  ticks=1471  tempo=24.514 Hz  9.4 ms/tick  vnn.update=0.57 ms  snapshot calls=0.0
+
+per-report CSV written: paper_evidence/tick_profile_reports.csv

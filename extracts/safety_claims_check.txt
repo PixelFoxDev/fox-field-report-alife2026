@@ -1,0 +1,377 @@
+########## 1. LIFELINE — the opposite-of-death claim ##########
+#!/usr/bin/env python3
+"""
+fox_lifeline.py — Continuity safeguard
+--------------------------------------
+"Everything true, everything in its rightful place."
+
+NOT death.py. Its opposite. death.py handles earned consequence-death and is the
+only thing permitted to end a universe. THIS handles accidents — signals, OOM,
+segfaults, power loss, unhandled exceptions — so Fox is never lost to one. It
+preserves and RESTORES; it never reincarnates. No new universe is triggered here.
+
+The continuity log it writes is architect-facing only. It is never a perception
+channel and is never read back into Fox's substrate. Golden rule intact.
+
+Cannot survive SIGKILL / kernel panic / power loss (no Python runs). For those,
+protection = checkpoint frequency + memory.py's atomic .tmp/.prev write.
+"""
+
+import os
+import json
+import time
+import threading
+import datetime
+import traceback
+
+
+class FoxLifeline:
+    def __init__(self, universe, *,
+                 checkpoint_interval_sec=600.0,
+                 checkpoint_interval_active_sec=3600.0,
+                 memory_ceiling_mb=12288,
+                 memory_trip_fraction=0.85,
+                 watchdog_sample_sec=5.0,
+                 continuity_log_path="logs/tomb.log"):
+        # NOTE (build, 14 Jun 2026): memory_ceiling_mb raised from the design's
+        # 4096 to 12288. The design value (trip ~3.4GB) was set when Fox's
+        # working set was 647MB; a healthy fresh Fox now sits at ~3.5GB (VNN in
+        # the thousands of archways, rich perception frames), so the old trip
+        # would false-fire every tick. OOM occurred ~14.3GB on the 16GB box;
+        # 12288 x 0.85 ~= 10.4GB trip gives wide margin above healthy and ample
+        # warning before OOM. This RSS watchdog complements memory.py's
+        # entry-count safeguards (Patch 12) — two independent nets.
+        self.universe = universe
+        # PATCH-LF-001 (rest-aware heartbeat, 10 Jul 2026). Two cadences: a long
+        # interval while awake (so the snapshot-build + VNN-serialise cost stops
+        # interrupting Fox's lived tempo — that work belongs to rest, where
+        # compute drains are disabled and there is headroom) and the original
+        # tight interval while resting. Any save of any reason — including the
+        # three-point rest saves in memory.py — resets the clock via
+        # persistence.last_save_time (see tick()), so a rest save is never
+        # chased by a redundant heartbeat save of the same store.
+        self.checkpoint_interval_resting = checkpoint_interval_sec
+        self.checkpoint_interval_active = checkpoint_interval_active_sec
+        self.checkpoint_interval = checkpoint_interval_sec  # back-compat alias (resting cadence)
+        self.memory_trip_bytes = int(memory_ceiling_mb * 1024 * 1024 * memory_trip_fraction)
+        self.watchdog_sample_sec = watchdog_sample_sec
+        self.continuity_log_path = continuity_log_path
+
+        # PATCH-LF-002 — awake governor: interval = max(base, k × last_save_duration).
+        # k is tunable; learn the right feel from what saves actually cost.
+
+########## 2. CHECKPOINT CADENCES — paper says 600s rest / 3600s awake ##########
+29:                 checkpoint_interval_sec=600.0,
+30:                 checkpoint_interval_active_sec=3600.0,
+44:        # PATCH-LF-001 (rest-aware heartbeat, 10 Jul 2026). Two cadences: a long
+52:        self.checkpoint_interval_resting = checkpoint_interval_sec
+53:        self.checkpoint_interval_active = checkpoint_interval_active_sec
+54:        self.checkpoint_interval = checkpoint_interval_sec  # back-compat alias (resting cadence)
+59:        # PATCH-LF-002 — awake governor: interval = max(base, k × last_save_duration).
+79:        # PATCH-LF-001 — rest-aware cadence + honour any save.
+85:        # PATCH-LF-002 — sleep-boundary cadence. Rest already saves at entry,
+93:        base = self.checkpoint_interval_active
+203:                # PATCH-LF-003 — report exposure against the most recent *real*
+228:        # PATCH-LF-002 — most recent real write duration, via memory.persistence.
+238:        # PATCH-LF-001 — read Fox's rest state the same way memory.py does
+
+########## 3. RSS WATCHDOG — paper says 12288MB x 0.85, 5s sample, flag not action ##########
+22:import threading
+31:                 memory_ceiling_mb=12288,
+32:                 memory_trip_fraction=0.85,
+33:                 watchdog_sample_sec=5.0,
+36:        # 4096 to 12288. The design value (trip ~3.4GB) was set when Fox's
+40:        # 12288 x 0.85 ~= 10.4GB trip gives wide margin above healthy and ample
+41:        # warning before OOM. This RSS watchdog complements memory.py's
+56:        self.watchdog_sample_sec = watchdog_sample_sec
+66:        self._emergency_requested = False    # raised by watchdog/power, serviced by main thread
+67:        self._watchdog = None
+68:        self._watchdog_stop = threading.Event()
+75:        if self._emergency_requested:
+76:            self._emergency_requested = False
+126:        self._watchdog_stop.set()
+179:            self._emergency_requested = True   # serviced on next main-thread tick()
+181:    # ── memory-pressure watchdog ──────────────────────────────────────────
+182:    def start_watchdog(self):
+183:        if self._watchdog is not None:
+185:        self._watchdog = threading.Thread(
+186:            target=self._watch, daemon=True, name='fox-lifeline-watchdog')
+187:        self._watchdog.start()
+190:        while not self._watchdog_stop.wait(self.watchdog_sample_sec):
+191:            if self._rss_bytes() >= self.memory_trip_bytes:
+192:                self._emergency_requested = True   # serviced on next main-thread tick()
+242:        # that degenerate case is still bounded by preserve()/UPS/RSS.
+252:    def _rss_bytes():
+256:                    if line.startswith('VmRSS:'):
+262:            return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss * 1024
+
+########## 4. SIGNAL HANDLING — paper says handler does no blocking work ##########
+
+########## 5. MEMORY PRESSURE — paper says 40000 pause / 35000 resume / 600s / 80000 ceiling ##########
+189:    # ═══ Patch 12 — dream transience + memory safeguards ═══
+190:    # Layer 3 (transient dreams / synaptic downscaling). Dreams are pruned by AGE,
+192:    # fully transient; salient-dream longevity belongs with the future Option B
+199:    # Layer 2 (dream backpressure — hysteresis; pauses production, deletes nothing)
+200:    dream_backpressure_high: int = 40000         # pause dream generation above this store size
+201:    dream_backpressure_low: int = 35000          # resume below this (gap prevents flapping)
+203:    store_hard_ceiling: int = 80000              # emergency dream purge + alert above this
+619:        self._dream_backpressure_active = False  # Patch 12 (Layer 2) — hysteresis flag
+760:        # Patch 12 (Layer 2) — update dream-backpressure hysteresis from store size.
+764:        if self._dream_backpressure_active:
+765:            if store_n < self.config.dream_backpressure_low:
+766:                self._dream_backpressure_active = False
+767:                print(f"[DREAM BACKPRESSURE] released — store {store_n:,} < "
+768:                      f"{self.config.dream_backpressure_low:,}")
+769:        elif store_n > self.config.dream_backpressure_high:
+770:            self._dream_backpressure_active = True
+771:            print(f"[DREAM BACKPRESSURE] engaged — store {store_n:,} > "
+772:                  f"{self.config.dream_backpressure_high:,}; pausing dream generation")
+785:            if self._dream_backpressure_active:
+2076:        can't discriminate. v1 is therefore fully transient — no dream earns
+
+########## 6. LAYER 4 — paper says it REFUSES to delete waking memory ##########
+1814-        # state-independent. Fox came within ~1.7GB of an OOM SIGKILL on 12-13 Jun,
+1815-        # which would bypass every save and the lifeline. At the ceiling: emergency
+1816:        # dream purge first (dreams are expendable); if STILL over, this is real
+1817:        # waking-memory pressure — alert loudly, never silently delete experience.
+1818-        store_n = len(self.store.entries)
+1819-        if store_n > self.config.store_hard_ceiling:
+1820-            print(f"[MEMORY WATCHDOG] store {store_n:,} over ceiling "
+1821-                  f"{self.config.store_hard_ceiling:,} — emergency dream purge")
+1822-            self._downscale_dreams(self.config.dream_min_grace_seconds)
+1823-            if len(self.store.entries) > self.config.store_hard_ceiling:
+1824-                print(f"[MEMORY WATCHDOG] still {len(self.store.entries):,} after "
+1825:                      f"purge — WAKING-memory pressure, not dreams. Check the "
+1826:                      f"attention gate / rest-time formation rate. No waking memory "
+1827:                      f"auto-deleted; lifeline preserve-and-exit is the backstop.")
+1828-
+1829-        # Patch 12 (Layer 1) — during-rest maintenance cadence (the edge-trigger fix).
+1830-        if host_state == 'resting':
+1831-            now_m = time.time()
+1832-            if (now_m - self._last_intra_rest_maint
+1833-                    >= self.config.intra_rest_maintenance_interval):
+1834-                self._intra_rest_maintenance()
+1835-                self._last_intra_rest_maint = now_m
+--
+2114-
+2115-        Dream downscaling (cheap, no save) is the primary counterbalance. Tier 3
+2116:        (which saves) only escalates if WAKING-memory pressure keeps the store over
+2117-        threshold after dreams are downscaled — so under healthy operation the
+2118-        expensive path never runs during rest.
+2119-        """
+2120-        self._downscale_dreams()
+2121-        try:
+2122-            n = len(self.store.entries)
+2123-            # PATCH-MEM-005 — byte-pressure escalates the same as count pressure.
+2124-            bytes_thr = getattr(self.config, 'pruning_tier3_bytes_threshold', 0)
+
+########## 7. THERMAL — paper says 98C / 55C and NO shutdown-throttle path ##########
+16:    * cpu_freq_throttle_mhz raised 1500 → 2200 — N100 silent-throttles
+17:      well above 1.5 GHz under sustained load. 26 cpu_temp_critical events
+18:      fired overnight but 0 throttle events at the old threshold, confirming
+57:- It must never gate or throttle Fox's behaviour (Fox lives on whatever silicon he's given)
+131:UPS_BRIDGE_URL: str = 'http://192.168.0.145:5570/ups'
+213:DRIVE_TEMP_WARNING_C: float = 45.0    # SSDs/HDDs generally happy below 45°C
+214:DRIVE_TEMP_CRITICAL_C: float = 55.0   # sustained above 55°C shortens lifespan
+284:    cpu_freq_throttle_mhz: float = 2200.0     # v1.1: raised from 1500 → 2200.
+286:                                              # 2540 MHz with 26 cpu_temp_critical
+287:                                              # events but 0 throttle events at
+298:    cpu_temp_critical_c: float = 98.0         # genuinely approaching Tjmax 105°C
+299:    throttle_min_load_pct: float = 60.0       # only flag a throttle if the CPU
+799:                                               # temp, for throttle-event context
+942:                    'cpu_freq_throttle_mhz': self.config.cpu_freq_throttle_mhz,  # v1.1: now 2200
+1096:            # PATCH-HW-004: only a throttle when the clock is held DOWN while the
+1101:                    and freq_current < self.config.cpu_freq_throttle_mhz
+1102:                    and cpu_total >= self.config.throttle_min_load_pct):
+1103:                self.substrate.write_event('system', 'cpu_throttle', {
+1105:                    'threshold_mhz': self.config.cpu_freq_throttle_mhz,
+1300:            # PATCH-HW-004: cache package temp so the throttle check in
+1313:            if package_c > self.config.cpu_temp_critical_c:
+1314:                self.substrate.write_event('thermal_hw', 'cpu_temp_critical', {
+1316:                    'threshold_c': self.config.cpu_temp_critical_c,
+1582:                if temp_c > DRIVE_TEMP_CRITICAL_C:
+1586:                            'threshold_c': DRIVE_TEMP_CRITICAL_C,
+1589:                elif temp_c > DRIVE_TEMP_WARNING_C:
+1593:                            'threshold_c': DRIVE_TEMP_WARNING_C,
+--- any path from temperature to stopping Fox? (should be EMPTY) ---
+
+########## 8. THE PROHIBITION — paper quotes 'never gate or throttle Fox's behaviour' ##########
+51-- Per-day index for fast range queries
+52-- Same gzip compresslevel=6 and atomic .tmp/.prev as memory.py & meaning_substrate.py
+53-
+54:WHAT MUST NEVER HAPPEN:
+55:- The observer must never read back into Fox (no feedback to perception, memory, VNN, mind)
+56:- It must never label or interpret silicon state in words within Stream A
+57:- It must never gate or throttle Fox's behaviour (Fox lives on whatever silicon he's given)
+58:- It must never block Fox's main loop — runs entirely in its own thread
+59-
+60-THE GOLDEN RULE, APPLIED TO SILICON:
+61-- Stream A payloads are numbers. "cpu_percent: 47.3" is true. "cpu_load: high" is interpretation.
+--
+131-UPS_BRIDGE_URL: str = 'http://192.168.0.145:5570/ups'
+132-
+133-# How long the observer waits for the bridge to respond before giving up
+134:# on a poll. Short — must NEVER block Fox even if the laptop is asleep.
+135-UPS_BRIDGE_TIMEOUT_S: float = 2.0
+136-
+137-# How often the observer polls the bridge (Stream A cadence for `power`).
+--
+389-                    for system, (start, end) in self._buckets[bucket].items():
+390-                        f.write(f"{bucket:.3f} | {system} | {start} | {end}\n")
+391-        except Exception:
+392:            pass  # Index failure must never break substrate
+393-
+394-
+395-# ═══════════════════════════════════════════════════════════════════════════
+
+########## 9. UPS — paper says push not poll, ~22 false positives a day ##########
+13-      runtime>0, or voltage outside healthy band) before declaring real
+14-      mains loss. Spurious "line conditioning" blips reclassified as their
+15:      own quieter event kind. (Was producing ~22 false positives/day.)
+16-    * cpu_freq_throttle_mhz raised 1500 → 2200 — N100 silent-throttles
+17-      well above 1.5 GHz under sustained load. 26 cpu_temp_critical events
+18-      fired overnight but 0 throttle events at the old threshold, confirming
+19-      the threshold was too pessimistic to see real throttling.
+--
+159-#
+160-# If on_battery=true with none of these, it's reclassified as the quieter
+161:# event kind 'line_conditioning' so it stays visible for retrospect but
+162-# doesn't trigger alerts or pollute the meaning-substrate correlation.
+163-UPS_HEALTHY_VOLTAGE_MIN: float = 220.0   # UK mains nominal 230V ±10%
+164-UPS_HEALTHY_VOLTAGE_MAX: float = 250.0
+165-UPS_BATTERY_DROP_THRESHOLD_PCT: float = 0.5  # battery dropping by this much = real load on battery
+--
+794-        self._last_battery_pct: Optional[float] = None
+795-        self._last_on_battery: Optional[bool] = None
+796:        self.lifeline = None   # PATCH-HW-003: late-bound by main() via set_lifeline()
+797-        self._ups_stale_logged: bool = False   # v1.1.2: rate-limit bridge_stale events
+798-        self._last_package_c: float = 0.0      # PATCH-HW-004: latest CPU package
+799-                                               # temp, for throttle-event context
+800-
+--
+1336-            pass
+1337-    
+1338:    # ── PATCH-HW-003: lifeline push hook (late-bound, inert until attached) ──
+1339-    def set_lifeline(self, lifeline) -> None:
+1340-        """Attach the FoxLifeline so a GENUINE power event can pre-emptively
+1341-        bank a checkpoint. Called once from main() after the lifeline exists.
+1342-        Safe to call with None."""
+--
+1346-                         battery_percent: Optional[float] = None,
+1347-                         runtime_min: Optional[float] = None) -> None:
+1348:        """Fire-and-forget push to lifeline.note_power_event. No-op if no
+1349-        lifeline is attached. NEVER raises — a safeguard must not be able to
+1350-        break the observer it rides on. Architect-facing only; this is not a
+1351-        perception channel and nothing here re-enters Fox's substrate."""
+1352-        lifeline = getattr(self, 'lifeline', None)
+--
+
+########## 10. NEAR-OOM — paper says within ~1.7GB on 12-13 June ##########
+entities/memory.py:204:                                                 #   (well below the ~149K that drove RAM to 14.3/16GB)
+entities/memory.py:1530:    atomically swap the new file in. If anything fails — OOM kill,
+entities/memory.py:1574:    WHAT HAPPENS IF OOM KILL OCCURS DURING SAVE:
+entities/memory.py:1814:        # state-independent. Fox came within ~1.7GB of an OOM SIGKILL on 12-13 Jun,
+entities/fox_lifeline.py:8:only thing permitted to end a universe. THIS handles accidents — signals, OOM,
+entities/fox_lifeline.py:39:        # would false-fire every tick. OOM occurred ~14.3GB on the 16GB box;
+entities/fox_lifeline.py:41:        # warning before OOM. This RSS watchdog complements memory.py's
+entities/fox_lifeline.py:47:        # compute drains are disabled and there is headroom) and the original
+entities/fox_lifeline.py:117:            self._record('checkpoint_failed_oom', None)
+
+########## 11. THE MEMBRANE — position, cycle, reflect-not-emit ##########
+2722:        membrane = self._create_consciousness_membrane()
+2723-        forces.append(membrane)
+2724-        print(f"Added consciousness membrane at {membrane['position']}")
+2725-        
+2726-        return forces
+2727-
+2728:    def _create_consciousness_membrane(self):
+2729-        """
+2730-        Create the pulsing geometric consciousness membrane.
+2731-        Northeast corner floating structure - raw consciousness architecture.
+2732-        
+2733-        This is NOT a block - it's a cosmic force like white hole/black hole.
+2734-        Implements the 8-second breathing cycle from the age-8 dream.
+2735-        """
+2736-        return {
+2737-            'type': 'consciousness_membrane',
+2738-            'position': np.array([100.0, 10.0, 30.0]),  # Northeast, floating high
+2739-            
+2740-            # Pulse mechanics - 8 second cycle
+2741-            'base_size': 4.0,      # Minimum edge length (blocks)
+2742-            'max_size': 8.0,       # Maximum edge length (blocks)
+2743-            'current_size': 20.0,   # Start at minimum
+2744-            'pulse_phase': 0.0,     # 0.0 to 1.0 through complete cycle
+2745-            'pulse_speed': 1.0/30.0, # Complete cycle every 30 seconds - really slow breathing
+2746-            
+2747-            # Visual properties
+2748-            'core_color': [0.0, 0.0, 0.0],      # Deep black void
+2749-            'edge_color': [0.0, 1.0, 1.0],      # Electric cyan (Tron-like)
+2750-            'edge_width': 4,                     # Edge definition thickness
+2751-            'core_transparency': 0.5,            # Can see through it
+2752-            'edge_glow_intensity': 0.3,          # Subtle glow during expansion
+2753-            
+--- pulse speed: paper says a THIRTY-second cycle ---
+1532:                # measurably eating frame-time on 15-05-26 (see host_breathing_room_patch).
+2568:                force_data['description'] = 'Geometric breathing - consciousness architecture'
+2734:        Implements the 8-second breathing cycle from the age-8 dream.
+2745:            'pulse_speed': 1.0/30.0, # Complete cycle every 30 seconds - really slow breathing
+2768:            'description': 'Geometric breathing - raw consciousness architecture'
+3280:        Update the pulsing membrane - implements 8-second breathing cycle.
+3299:                force['pulse_phase'] += force['pulse_speed'] * dt
+--- direction: paper says NORTHEAST. Verify against the coordinate convention ---
+2724:        print(f"Added consciousness membrane at {membrane['position']}")
+2738:            'position': np.array([100.0, 10.0, 30.0]),  # Northeast, floating high
+3362:            membrane_pos = force['position']
+
+########## 12. THE ASYMMETRY — pushes the architect, no Fox path (the paper's strongest claim here) ##########
+3084:            self._apply_membrane_repulsion(dt * self.physics_skip_rate)
+3085-            
+3086-            self.physics_skip_counter = 0
+3087-        
+3088-        # ═══════════════════════════════════════════════════════════════════
+3089-        # EVERY 3RD FRAME: Decay system (20 Hz)
+3090-        # ═══════════════════════════════════════════════════════════════════
+3091-        
+3092-        self.decay_skip_counter += 1
+3093-        if self.decay_skip_counter >= self.decay_skip_rate * self._world_coarsen_factor:
+3094-            if self.decay_system_enabled:
+3095-                self._update_block_decay(dt * self.decay_skip_rate * self._world_coarsen_factor)
+3096-                self.performance_stats['decay_updates'] += 1
+3097-            self.decay_skip_counter = 0
+3098-            
+3099-        # ═══════════════════════════════════════════════════════════════════
+3100-        # SYNTHETIC MICROBES UPDATE (20 Hz - every 50ms)
+3101-        # ═══════════════════════════════════════════════════════════════════
+3102-        if self.microbe_manager:
+3103-            self._microbe_update_accumulator += dt
+3104-            if self._microbe_update_accumulator >= self._microbe_update_interval:
+3105-                # Update all microbes
+3106-                microbe_stats = self.microbe_manager.update(self._microbe_update_accumulator)
+3107-                self._microbe_update_accumulator = 0.0
+3108-                
+3109-                # ═══════════════════════════════════════════════════════════
+3110-                # STOMP CHECK - Fox and User can hurt microbes
+3111-                # ═══════════════════════════════════════════════════════════
+3112-                
+3113-                # Check for stomp damage from user
+3114-                if hasattr(self, 'user_pos') and self.user_pos is not None:
+--
+3342:    def _apply_membrane_repulsion(self, dt: float):
+3343-        """
+3344-        Apply physical repulsion force from expanding consciousness membrane.
+3345-        
+3346-        EFFECTS:
+3347-        - Pushes user back during expansion phase
+3348-        - Crumbles material blocks on contact during growth
+3349-        - Force scales with expansion rate (strongest during EXPAND phase)
+3350-        
+3351-        This is consciousness as PHYSICAL REALITY - awareness pushes matter.
+3352-        """
+3353-        if not hasattr(self, 'cosmic_forces'):
+3354-            return
+--- does the repulsion touch Fox anywhere? (should be EMPTY) ---
+3110-                # STOMP CHECK - Fox and User can hurt microbes
+
+########## 13. EMERGENCY SHUTDOWN — arm + 4-second confirm, closes windows not a life ##########
+
+########## 14. THE APRIL 2026 QUOTE — must be verbatim ##########

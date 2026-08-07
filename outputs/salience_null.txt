@@ -1,0 +1,37 @@
+=== directory inventory ===
+  canonical logs in window   337
+  canonical logs post-cutoff 8
+  .idx index files           16
+  'Copy' duplicates          3
+      dimensional_2026-06-17_part1 - Copy.idx
+      dimensional_2026-06-17_part1.log - Copy.gz
+      dimensional_2026-06-18.log - Copy.gz
+  anything else              0
+  TOTAL entries              364
+
+=== canonical set, 4 Jun - 31 Jul 2026 ===
+samples            946,222      <- paper says 987,838
+unparsed lines     0
+window             2026-06-04 09:31:57  ->  2026-07-31 07:56:49
+salience MAX       0.030600   at 2026-07-15 10:24:49  in dimensional_2026-07-15_part2.log.gz
+salience nonzero   499,638 (52.8%)
+threshold 0.15     NEVER CROSSED  (4.9x below)
+in-run cadence     0.683 Hz  (median gap 1.13s, 384.4 h in run)
+  downtime gaps    510 totalling 982.0 h
+  naive span/count 0.192 Hz   <- the misleading method
+top 6 days by peak salience
+  2026-07-15   0.030600
+  2026-07-09   0.030500
+  2026-07-10   0.030500
+  2026-07-13   0.030500
+  2026-07-16   0.030500
+  2026-07-14   0.030100
+
+=== 'Copy' duplicates, counted separately ===
+samples in copies  41,616   (unparsed 452)
+their date range   2026-06-17 10:28:42  ->  2026-06-18 07:57:53
+their salience max 0.017500
+canonical + copies 987,838      <- does this equal 987,838?
+difference from paper figure: 0
+
+.idx files in window: 15  ->  parseable salience samples: 0 (unparsed 5,843)
